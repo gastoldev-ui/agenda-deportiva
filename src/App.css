@@ -1,0 +1,151 @@
+/* src/App.css */
+:root {
+  --bg-principal: #0a0a0a;
+  --bg-header: #141414;
+  --bg-input: #1f1f1f;
+  --accent: #00bcff;
+  --text-main: #e0e0e0;
+  --text-dim: #888;
+  --gold: #ffcc00;
+  --neon-green: #00ffcc;
+}
+
+#root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-principal);
+}
+
+.container {
+  min-height: 100vh;
+  color: var(--text-main);
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  background-color: var(--bg-header);
+  padding: 1.5rem;
+  border-bottom: 1px solid #222;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+h1 {
+  margin: 0 0 1rem 0;
+  font-size: 1.4rem;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+
+.search-bar {
+  width: 90%;
+  max-width: 450px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background-color: var(--bg-input);
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.search-bar:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(0, 188, 255, 0.3);
+}
+
+.tabla-container {
+  padding: 0 10px 40px 10px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* --- FILA DE FECHA --- */
+.fila-fecha {
+  background-color: #111;
+}
+
+.fila-fecha td {
+  padding: 18px 10px;
+  color: var(--neon-green);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  border-bottom: 1px solid #222;
+  text-align: center;
+}
+
+/* --- FILA DE PARTIDO --- */
+.fila-partido {
+  border-bottom: 1px solid #1a1a1a;
+  transition: background 0.15s;
+}
+
+.fila-partido:hover {
+  background-color: #161616;
+}
+
+td {
+  padding: 14px 10px;
+  vertical-align: middle;
+}
+
+.col-hora {
+  font-family: 'Courier New', Courier, monospace;
+  color: var(--text-dim);
+  font-weight: bold;
+  font-size: 1.1rem;
+  width: 80px;
+}
+
+.col-evento {
+  font-weight: 400;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.col-canales {
+  color: var(--gold);
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-align: right;
+  max-width: 200px;
+}
+
+/* --- RESPONSIVO PARA EL CELULAR --- */
+@media (max-width: 600px) {
+  h1 { font-size: 1.2rem; }
+  
+  .fila-partido {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+  }
+  
+  td { 
+    padding: 2px 0; 
+    width: 100% !important; 
+    text-align: left !important; 
+  }
+  
+  .col-hora { color: var(--accent); font-size: 0.9rem; }
+  .col-evento { font-size: 1.1rem; margin-bottom: 4px; }
+  .col-canales { color: var(--gold); font-size: 0.8rem; }
+}
