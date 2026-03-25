@@ -10,34 +10,42 @@ export default async function handler(req, res) {
     const $ = cheerio.load(data);
     const agenda = [];
 
-    // Recorremos todas las filas de la tabla
+    // Recorremos las filas de la tabla principal
     $('table.tablaPrincipal tr').each((i, el) => {
       const fila = $(el);
 
-      // DETECTAR FECHA: Buscamos filas con clase 'fecha' o que tengan ese fondo azul (estilo de la web)
-      // Muchas veces son celdas que dicen "Partidos de hoy..."
-      if (fila.hasClass('fecha') || fila.find('td.fecha').length > 0 || fila.text().includes('Partidos de hoy')) {
-        const textoFecha = fila.text().trim().split('\n')[0]; // Limpiamos ruidos
-        if (textoFecha.length > 5) {
+      // 1. DETECTAR FECHA (Usa la clase .cabeceraTabla que me pasaste)
+      if (fila.hasClass('cabeceraTabla')) {
+        const textoFecha = fila.find('td').text().trim();
+        if (textoFecha) {
           agenda.push({ tipo: 'FECHA', valor: textoFecha.toUpperCase() });
         }
       } 
-      // DETECTAR PARTIDO: Si tiene hora, es un partido
+      
+      // 2. DETECTAR PARTIDO (Fila estándar con hora)
       else if (fila.find('.hora').length > 0) {
         const hora = fila.find('.hora').text().trim();
+        
+        // Extraer Competición (la que está en el <span> o <label>)
+        const competicion = fila.find('.detalles label').attr('title') || fila.find('.detalles img').attr('title');
+
+        // Extraer Equipos (usando el title del span como ya hacíamos)
         const local = fila.find('.local span').attr('title') || fila.find('.local').text().trim();
         const visitante = fila.find('.visitante span').attr('title') || fila.find('.visitante').text().trim();
         
+        // Extraer Canales (recorriendo la .listaCanales que vimos en tu código)
         const canales = [];
-        fila.find('.canales li, .canales a').each((j, can) => {
-          const txt = $(can).text().trim();
-          if (txt && !canales.includes(txt)) canales.push(txt);
+        fila.find('.listaCanales li').each((j, li) => {
+          const nombreCanal = $(li).text().trim();
+          if (nombreCanal) canales.push(nombreCanal);
         });
 
-        if (local && visitante && hora.includes(':')) {
+        // Validamos que tengamos los datos mínimos
+        if (local && visitante && hora) {
           agenda.push({
             tipo: 'PARTIDO',
             hora: hora,
+            competicion: competicion || "Fútbol",
             evento: `${local} vs ${visitante}`,
             canales: canales.join(' | ') || 'A confirmar'
           });
@@ -45,12 +53,11 @@ export default async function handler(req, res) {
       }
     });
 
-    // IMPORTANTE: No ordenamos por hora globalmente, porque romperíamos la agrupación por fecha.
-    // Los datos ya vienen ordenados por día y hora desde la web.
-
+    // Cache de 1 minuto para no saturar y que cargue rápido
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
     res.status(200).json(agenda);
   } catch (e) {
-    res.status(500).json({ error: 'Error' });
+    console.error(e);
+    res.status(500).json({ error: 'Error al obtener los datos' });
   }
 }
