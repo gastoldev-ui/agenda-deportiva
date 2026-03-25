@@ -20,21 +20,36 @@ export default async function handler(req, res) {
       } 
       else if (fila.find('.hora').length > 0) {
         const hora = fila.find('.hora').text().trim();
+        
+        // Identificar Deporte
+        const deporte = fila.find('.detalles img').attr('title') || 
+                        fila.find('.ajusteDoslineas').attr('title') || 
+                        fila.find('.ajusteDoslineas').text().trim() || "Fútbol";
+
+        // Lógica de Evento (Equipos o Columna Única como F1)
+        let evento = "";
         const local = fila.find('.local span').attr('title') || fila.find('.local').text().trim();
         const visitante = fila.find('.visitante span').attr('title') || fila.find('.visitante').text().trim();
-        
+
+        if (local && visitante) {
+          evento = `${local} vs ${visitante}`;
+        } else {
+          // Caso F1 / Boxeo / Eventos únicos
+          evento = fila.find('.eventoUnaColumna').text().trim().replace(/\s+/g, ' ');
+        }
+
         const canales = [];
         fila.find('.listaCanales li').each((j, li) => {
           const txt = $(li).text().trim();
           if (txt) canales.push(txt);
         });
 
-        if (local && visitante && hora && fechaActual) {
+        if (evento && hora && fechaActual) {
           grupos[fechaActual].push({
             tipo: 'PARTIDO',
             hora,
-            deporte: 'Fútbol',
-            evento: `${local} vs ${visitante}`,
+            deporte,
+            evento,
             canales: canales.join(' | ') || 'A confirmar'
           });
         }
@@ -43,9 +58,11 @@ export default async function handler(req, res) {
 
     const agendaFinal = [];
     Object.keys(grupos).forEach(fecha => {
-      agendaFinal.push({ tipo: 'FECHA', valor: fecha });
-      const ordenados = grupos[fecha].sort((a, b) => a.hora.localeCompare(b.hora));
-      agendaFinal.push(...ordenados);
+      if (grupos[fecha].length > 0) {
+        agendaFinal.push({ tipo: 'FECHA', valor: fecha });
+        const ordenados = grupos[fecha].sort((a, b) => a.hora.localeCompare(b.hora));
+        agendaFinal.push(...ordenados);
+      }
     });
 
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');

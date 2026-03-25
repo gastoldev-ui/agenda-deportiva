@@ -19,29 +19,40 @@ export default async function handler(req, res) {
         if (!grupos[fechaActual]) grupos[fechaActual] = [];
       } 
       else if (fila.find('.hora').length > 0) {
-        // Extraemos el deporte
-        const deporte = fila.find('.detalles img').attr('title') || fila.find('.detalles label').text().trim() || "Deporte";
+        // 1. Extraer y Filtrar Deporte
+        const deporte = fila.find('.detalles img').attr('title') || 
+                        fila.find('.ajusteDoslineas').attr('title') || 
+                        fila.find('.ajusteDoslineas').text().trim() || "Deporte";
 
-        // --- FILTRO RADICAL DE FÚTBOL ---
         const esFutbol = /fútbol|futbol|soccer|futsal|football/i.test(deporte);
-        if (esFutbol) return; // Si es algo relacionado al fútbol, lo salteamos
+        if (esFutbol) return; // Si es fútbol, lo ignoramos en esta sección
 
         const hora = fila.find('.hora').text().trim();
+        
+        // 2. Extraer el Evento (Detecta F1, Tenis, etc.)
+        let evento = "";
         const local = fila.find('.local span').attr('title') || fila.find('.local').text().trim();
         const visitante = fila.find('.visitante span').attr('title') || fila.find('.visitante').text().trim();
-        
+
+        if (local && visitante) {
+          evento = `${local} vs ${visitante}`;
+        } else {
+          // Soporte para Fórmula 1 y eventos de una sola columna
+          evento = fila.find('.eventoUnaColumna').text().trim().replace(/\s+/g, ' ');
+        }
+
         const canales = [];
         fila.find('.listaCanales li').each((j, li) => {
           const txt = $(li).text().trim();
           if (txt) canales.push(txt);
         });
 
-        if (local && visitante && hora && fechaActual) {
+        if (evento && hora && fechaActual) {
           grupos[fechaActual].push({
             tipo: 'PARTIDO',
             hora,
             deporte,
-            evento: `${local} vs ${visitante}`,
+            evento,
             canales: canales.join(' | ') || 'A confirmar'
           });
         }
@@ -50,7 +61,6 @@ export default async function handler(req, res) {
 
     const agendaFinal = [];
     Object.keys(grupos).forEach(fecha => {
-      // Solo agregamos la fecha si el grupo de deportes NO está vacío después del filtro
       if (grupos[fecha].length > 0) {
         agendaFinal.push({ tipo: 'FECHA', valor: fecha });
         const ordenados = grupos[fecha].sort((a, b) => a.hora.localeCompare(b.hora));
