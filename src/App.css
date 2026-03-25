@@ -1,13 +1,14 @@
 /* src/App.css */
 :root {
-  --bg-principal: #0a0a0a;
-  --bg-header: #141414;
+  --bg-principal: #050505; /* Un negro más profundo */
+  --bg-header: #111111;
   --bg-input: #1f1f1f;
-  --accent: #00bcff;
-  --text-main: #e0e0e0;
-  --text-dim: #888;
+  --accent-blue: #4485f7;  /* El azul de la web original */
+  --accent-dark-blue: #2a5bb5;
+  --text-main: #ffffff;
+  --text-dim: #bbbbbb;
   --gold: #ffcc00;
-  --neon-green: #00ffcc;
+  --danger: #ff4444;
 }
 
 #root {
@@ -31,43 +32,41 @@ header {
   position: sticky;
   top: 0;
   background-color: var(--bg-header);
-  padding: 1.5rem;
+  padding: 1.2rem;
   border-bottom: 1px solid #222;
   z-index: 100;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.7);
 }
 
 h1 {
-  margin: 0 0 1rem 0;
-  font-size: 1.4rem;
-  color: var(--accent);
+  margin: 0 0 0.8rem 0;
+  font-size: 1.3rem;
+  color: var(--accent-blue);
   letter-spacing: 1px;
 }
 
 .search-bar {
   width: 90%;
   max-width: 450px;
-  padding: 12px 20px;
-  border-radius: 8px;
+  padding: 10px 18px;
+  border-radius: 6px;
   border: 1px solid #333;
   background-color: var(--bg-input);
   color: white;
   font-size: 1rem;
   outline: none;
-  transition: all 0.3s ease;
 }
 
 .search-bar:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 8px rgba(0, 188, 255, 0.3);
+  border-color: var(--accent-blue);
 }
 
 .tabla-container {
-  padding: 0 10px 40px 10px;
-  max-width: 900px;
+  padding: 0; /* Sin padding lateral para que la fecha toque los bordes en el celu */
+  max-width: 1000px;
   margin: 0 auto;
 }
 
@@ -76,49 +75,52 @@ table {
   border-collapse: collapse;
 }
 
-/* --- FILA DE FECHA --- */
+/* --- FILA DE FECHA (Estilo Azul Web Original) --- */
 .fila-fecha {
-  background-color: #111;
+  background-color: var(--accent-blue);
 }
 
 .fila-fecha td {
-  padding: 18px 10px;
-  color: var(--neon-green);
-  font-weight: 800;
+  padding: 12px 15px;
+  color: #ffffff !important;
+  font-weight: bold;
   text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 2px;
-  border-bottom: 1px solid #222;
-  text-align: center;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  text-align: left;
+  border-left: 6px solid var(--accent-dark-blue);
 }
 
 /* --- FILA DE PARTIDO --- */
 .fila-partido {
   border-bottom: 1px solid #1a1a1a;
-  transition: background 0.15s;
+  background-color: #000000;
+  transition: background 0.2s;
 }
 
 .fila-partido:hover {
-  background-color: #161616;
+  background-color: #0a0a0a;
 }
 
 td {
-  padding: 14px 10px;
+  padding: 12px 10px;
   vertical-align: middle;
 }
 
 .col-hora {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
   color: var(--text-dim);
   font-weight: bold;
-  font-size: 1.1rem;
-  width: 80px;
+  font-size: 1rem;
+  width: 70px;
+  text-align: center;
+  border-right: 1px solid #1a1a1a;
 }
 
 .col-evento {
-  font-weight: 400;
-  font-size: 1rem;
-  color: #fff;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding-left: 15px !important;
 }
 
 .col-canales {
@@ -126,13 +128,11 @@ td {
   font-size: 0.85rem;
   font-weight: bold;
   text-align: right;
-  max-width: 200px;
+  padding-right: 15px !important;
 }
 
-/* --- RESPONSIVO PARA EL CELULAR --- */
+/* --- RESPONSIVO --- */
 @media (max-width: 600px) {
-  h1 { font-size: 1.2rem; }
-  
   .fila-partido {
     display: flex;
     flex-direction: column;
@@ -142,10 +142,11 @@ td {
   td { 
     padding: 2px 0; 
     width: 100% !important; 
-    text-align: left !important; 
+    text-align: left !important;
+    border: none !important;
   }
   
-  .col-hora { color: var(--accent); font-size: 0.9rem; }
-  .col-evento { font-size: 1.1rem; margin-bottom: 4px; }
-  .col-canales { color: var(--gold); font-size: 0.8rem; }
+  .col-hora { color: var(--accent-blue); font-size: 0.85rem; margin-bottom: 2px; }
+  .col-evento { font-size: 1.05rem; padding-left: 0 !important; }
+  .col-canales { color: var(--gold); font-size: 0.8rem; padding-right: 0 !important; margin-top: 4px; }
 }
