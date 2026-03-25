@@ -19,10 +19,12 @@ export default async function handler(req, res) {
         if (!grupos[fechaActual]) grupos[fechaActual] = [];
       } 
       else if (fila.find('.hora').length > 0) {
-        const deporte = fila.find('.detalles img').attr('title') || "Deporte";
+        // Extraemos el deporte
+        const deporte = fila.find('.detalles img').attr('title') || fila.find('.detalles label').text().trim() || "Deporte";
 
-        // Filtramos para quitar fútbol de esta sección
-        if (deporte.toLowerCase().includes('fútbol') || deporte.toLowerCase().includes('soccer')) return;
+        // --- FILTRO RADICAL DE FÚTBOL ---
+        const esFutbol = /fútbol|futbol|soccer|futsal|football/i.test(deporte);
+        if (esFutbol) return; // Si es algo relacionado al fútbol, lo salteamos
 
         const hora = fila.find('.hora').text().trim();
         const local = fila.find('.local span').attr('title') || fila.find('.local').text().trim();
@@ -48,9 +50,12 @@ export default async function handler(req, res) {
 
     const agendaFinal = [];
     Object.keys(grupos).forEach(fecha => {
-      agendaFinal.push({ tipo: 'FECHA', valor: fecha });
-      const ordenados = grupos[fecha].sort((a, b) => a.hora.localeCompare(b.hora));
-      agendaFinal.push(...ordenados);
+      // Solo agregamos la fecha si el grupo de deportes NO está vacío después del filtro
+      if (grupos[fecha].length > 0) {
+        agendaFinal.push({ tipo: 'FECHA', valor: fecha });
+        const ordenados = grupos[fecha].sort((a, b) => a.hora.localeCompare(b.hora));
+        agendaFinal.push(...ordenados);
+      }
     });
 
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
