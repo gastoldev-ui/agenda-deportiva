@@ -8,44 +8,32 @@ export default async function handler(req, res) {
     });
 
     const $ = cheerio.load(data);
-    const agenda = [];
+    const grupos = {}; // Objeto para agrupar: { "FECHA": [partidos...] }
+    let fechaActual = "SIN FECHA";
 
-    // Recorremos las filas de la tabla principal
     $('table.tablaPrincipal tr').each((i, el) => {
       const fila = $(el);
 
-      // 1. DETECTAR FECHA (Usa la clase .cabeceraTabla que me pasaste)
       if (fila.hasClass('cabeceraTabla')) {
-        const textoFecha = fila.find('td').text().trim();
-        if (textoFecha) {
-          agenda.push({ tipo: 'FECHA', valor: textoFecha.toUpperCase() });
-        }
+        fechaActual = fila.find('td').text().trim().toUpperCase();
+        if (!grupos[fechaActual]) grupos[fechaActual] = [];
       } 
-      
-      // 2. DETECTAR PARTIDO (Fila estándar con hora)
       else if (fila.find('.hora').length > 0) {
         const hora = fila.find('.hora').text().trim();
-        
-        // Extraer Competición (la que está en el <span> o <label>)
-        const competicion = fila.find('.detalles label').attr('title') || fila.find('.detalles img').attr('title');
-
-        // Extraer Equipos (usando el title del span como ya hacíamos)
         const local = fila.find('.local span').attr('title') || fila.find('.local').text().trim();
         const visitante = fila.find('.visitante span').attr('title') || fila.find('.visitante').text().trim();
         
-        // Extraer Canales (recorriendo la .listaCanales que vimos en tu código)
         const canales = [];
         fila.find('.listaCanales li').each((j, li) => {
-          const nombreCanal = $(li).text().trim();
-          if (nombreCanal) canales.push(nombreCanal);
+          const txt = $(li).text().trim();
+          if (txt) canales.push(txt);
         });
 
-        // Validamos que tengamos los datos mínimos
         if (local && visitante && hora) {
-          agenda.push({
+          if (!grupos[fechaActual]) grupos[fechaActual] = [];
+          grupos[fechaActual].push({
             tipo: 'PARTIDO',
-            hora: hora,
-            competicion: competicion || "Fútbol",
+            hora,
             evento: `${local} vs ${visitante}`,
             canales: canales.join(' | ') || 'A confirmar'
           });
@@ -53,11 +41,24 @@ export default async function handler(req, res) {
       }
     });
 
-    // Cache de 1 minuto para no saturar y que cargue rápido
+    // Ahora armamos la lista final ordenada
+    const agendaFinal = [];
+    Object.keys(grupos).forEach(fecha => {
+      // 1. Agregamos la cabecera de la fecha
+      agendaFinal.push({ tipo: 'FECHA', valor: fecha });
+
+      // 2. Ordenamos los partidos de ESA fecha por hora
+      const partidosOrdenados = grupos[fecha].sort((a, b) => {
+        return a.hora.localeCompare(b.hora);
+      });
+
+      // 3. Los metemos en la lista final
+      agendaFinal.push(...partidosOrdenados);
+    });
+
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
-    res.status(200).json(agenda);
+    res.status(200).json(agendaFinal);
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Error al obtener los datos' });
+    res.status(500).json({ error: 'Error al ordenar datos' });
   }
 }
