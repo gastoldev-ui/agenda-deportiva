@@ -4,87 +4,75 @@ import './App.css';
 function App() {
   const [eventos, setEventos] = useState([]);
   const [busqueda, setBusqueda] = useState("");
+  const [seccion, setSeccion] = useState("get-agenda"); // 'get-agenda' o 'get-deportes'
   const [cargando, setCargando] = useState(true);
 
-  // Definimos la función de carga de forma estable con useCallback
-  const cargarAgenda = useCallback(async () => {
+  const cargarDatos = useCallback(async () => {
+    setCargando(true);
     try {
-      // El fetch apunta a la Serverless Function de Vercel en /api
-      const res = await fetch('/api/get-agenda');
-      if (!res.ok) throw new Error('Error en la respuesta de la API');
-      
+      const res = await fetch(`/api/${seccion}`);
       const data = await res.json();
       setEventos(data);
-      setCargando(false);
     } catch (e) {
-      console.error("Error al obtener la agenda:", e);
+      console.error("Error cargando datos");
+    } finally {
       setCargando(false);
     }
-  }, []);
+  }, [seccion]);
 
   useEffect(() => {
-    // Primera carga al montar el componente
-    cargarAgenda();
-
-    // Configuramos el intervalo de actualización automática (10 minutos)
-    const interval = setInterval(() => {
-      cargarAgenda();
-    }, 600000);
-
-    // Limpieza al desmontar el componente para evitar fugas de memoria
+    cargarDatos();
+    const interval = setInterval(cargarDatos, 600000);
     return () => clearInterval(interval);
-  }, [cargarAgenda]);
+  }, [cargarDatos]);
 
-  // Lógica de filtrado: mantenemos las FECHAS siempre visibles 
-  // o filtramos PARTIDOS por nombre de equipo o canal
   const filtrados = eventos.filter(item => {
     if (item.tipo === 'FECHA') return true;
-    
-    const termino = busqueda.toLowerCase();
-    return (
-      item.evento?.toLowerCase().includes(termino) ||
-      item.canales?.toLowerCase().includes(termino)
-    );
+    const t = busqueda.toLowerCase();
+    return item.evento?.toLowerCase().includes(t) || item.canales?.toLowerCase().includes(t);
   });
 
   return (
     <div className="container">
       <header>
-        <h1>⚽ Agenda Deportiva</h1>
+        <h1>{seccion === 'get-agenda' ? '⚽ Agenda Fútbol' : '🏀 Polideportivo'}</h1>
+        
+        {/* Selector de Sección */}
+        <div className="tab-container">
+          <button 
+            className={seccion === 'get-agenda' ? 'active' : ''} 
+            onClick={() => setSeccion('get-agenda')}
+          >Fútbol</button>
+          <button 
+            className={seccion === 'get-deportes' ? 'active' : ''} 
+            onClick={() => setSeccion('get-deportes')}
+          >Otros Deportes</button>
+        </div>
+
         <input 
           type="text" 
-          placeholder="Buscar equipo o canal (Boca, ESPN...)" 
+          placeholder="Buscar..." 
           className="search-bar"
-          value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
-        {cargando && <p className="status-text">Actualizando datos...</p>}
       </header>
 
       <div className="tabla-container">
         <table>
           <tbody>
-            {filtrados.length > 0 ? (
-              filtrados.map((item, index) => (
-                item.tipo === 'FECHA' ? (
-                  <tr key={`fecha-${index}`} className="fila-fecha">
-                    <td colSpan="3">{item.valor}</td>
-                  </tr>
-                ) : (
-                  <tr key={`partido-${index}`} className="fila-partido">
-                    <td className="col-hora">{item.hora}</td>
-                    <td className="col-evento">{item.evento}</td>
-                    <td className="col-canales">{item.canales}</td>
-                  </tr>
-                )
-              ))
-            ) : (
-              <tr>
-                <td colSpan="3" style={{ textAlign: 'center', padding: '20px' }}>
-                  {cargando ? "Cargando partidos..." : "No se encontraron eventos."}
-                </td>
-              </tr>
-            )}
+            {filtrados.map((item, index) => (
+              item.tipo === 'FECHA' ? (
+                <tr key={index} className="fila-fecha"><td colSpan="3">{item.valor}</td></tr>
+              ) : (
+                <tr key={index} className="fila-partido">
+                  <td className="col-hora">{item.hora}</td>
+                  <td className="col-evento">
+                    <span className="badge-deporte">{item.deporte}</span> {item.evento}
+                  </td>
+                  <td className="col-canales">{item.canales}</td>
+                </tr>
+              )
+            ))}
           </tbody>
         </table>
       </div>

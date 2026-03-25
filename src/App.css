@@ -150,3 +150,35 @@ td {
   .col-evento { font-size: 1.05rem; padding-left: 0 !important; }
   .col-canales { color: var(--gold); font-size: 0.8rem; padding-right: 0 !important; margin-top: 4px; }
 }
+.tab-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.tab-container button {
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: 1px solid #333;
+  background: #111;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.tab-container button.active {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.badge-deporte {
+  font-size: 0.7rem;
+  background: #333;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-right: 8px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
