@@ -20,13 +20,8 @@ export default async function handler(req, res) {
       } 
       else if (fila.find('.hora').length > 0) {
         const hora = fila.find('.hora').text().trim();
-        
-        // Identificar Deporte
-        const deporte = fila.find('.detalles img').attr('title') || 
-                        fila.find('.ajusteDoslineas').attr('title') || 
-                        fila.find('.ajusteDoslineas').text().trim() || "Fútbol";
+        const deporte = "Fútbol"; // En esta URL casi todo es fútbol
 
-        // Lógica de Evento (Equipos o Columna Única como F1)
         let evento = "";
         const local = fila.find('.local span').attr('title') || fila.find('.local').text().trim();
         const visitante = fila.find('.visitante span').attr('title') || fila.find('.visitante').text().trim();
@@ -34,7 +29,6 @@ export default async function handler(req, res) {
         if (local && visitante) {
           evento = `${local} vs ${visitante}`;
         } else {
-          // Caso F1 / Boxeo / Eventos únicos
           evento = fila.find('.eventoUnaColumna').text().trim().replace(/\s+/g, ' ');
         }
 

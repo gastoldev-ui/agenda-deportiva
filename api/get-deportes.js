@@ -19,17 +19,20 @@ export default async function handler(req, res) {
         if (!grupos[fechaActual]) grupos[fechaActual] = [];
       } 
       else if (fila.find('.hora').length > 0) {
-        // 1. Extraer y Filtrar Deporte
-        const deporte = fila.find('.detalles img').attr('title') || 
-                        fila.find('.ajusteDoslineas').attr('title') || 
-                        fila.find('.ajusteDoslineas').text().trim() || "Deporte";
+        // 1. Extraer Deporte
+        const deporteImg = fila.find('.detalles img').attr('title') || "";
+        const deporteSpan = fila.find('.ajusteDoslineas').text().trim() || "";
+        const deporteFinal = deporteImg || deporteSpan || "Deporte";
 
-        const esFutbol = /fútbol|futbol|soccer|futsal|football/i.test(deporte);
-        if (esFutbol) return; // Si es fútbol, lo ignoramos en esta sección
+        // --- FILTRO ANTI-FUTBOL ---
+        // Si el deporte contiene "Futbol" (con o sin tilde) lo ignoramos
+        if (deporteFinal.toLowerCase().includes('futbol') || deporteFinal.toLowerCase().includes('fútbol')) {
+          return; // Salta esta fila y sigue con la otra
+        }
 
         const hora = fila.find('.hora').text().trim();
         
-        // 2. Extraer el Evento (Detecta F1, Tenis, etc.)
+        // 2. Extraer el Evento (Normal o F1/Tenis)
         let evento = "";
         const local = fila.find('.local span').attr('title') || fila.find('.local').text().trim();
         const visitante = fila.find('.visitante span').attr('title') || fila.find('.visitante').text().trim();
@@ -37,7 +40,6 @@ export default async function handler(req, res) {
         if (local && visitante) {
           evento = `${local} vs ${visitante}`;
         } else {
-          // Soporte para Fórmula 1 y eventos de una sola columna
           evento = fila.find('.eventoUnaColumna').text().trim().replace(/\s+/g, ' ');
         }
 
@@ -51,7 +53,7 @@ export default async function handler(req, res) {
           grupos[fechaActual].push({
             tipo: 'PARTIDO',
             hora,
-            deporte,
+            deporte: deporteFinal,
             evento,
             canales: canales.join(' | ') || 'A confirmar'
           });
